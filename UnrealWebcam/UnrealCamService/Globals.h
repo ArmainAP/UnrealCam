@@ -3,9 +3,9 @@
 #include <string>
 
 
-#define CaptureSourceName  L"UnityCam"
+#define CaptureSourceName  L"UnrealCam"
 
-DEFINE_GUID(CLSID_UnityCamService,
+DEFINE_GUID(CLSID_UnrealCamService,
 	0x5c2cd55c, 0x92ad, 0x4999, 0x86, 0x66, 0x91, 0x2b, 0xd3, 0xe7, 0x0, 0x1);
 
 #define CS_EVENT_Base_WRITE	CaptureSourceName L"_Write"

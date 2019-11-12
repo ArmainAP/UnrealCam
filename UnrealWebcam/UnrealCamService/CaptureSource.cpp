@@ -63,7 +63,7 @@ const AMOVIESETUP_PIN sudCaptureSourceOut =
 
 const AMOVIESETUP_FILTER sudCaptureSource =
 {
-    &CLSID_UnityCamService,	// Filter CLSID
+    &CLSID_UnrealCamService,	// Filter CLSID
 	CaptureSourceName,			// String name
     MERIT_DO_NOT_USE,		// Filter merit
     1,//0,						// Number pins
@@ -104,7 +104,7 @@ CUnknown * WINAPI CaptureSource::CreateInstance(LPUNKNOWN lpunk, HRESULT *phr)
 }
 
 CaptureSource::CaptureSource(LPUNKNOWN lpunk, HRESULT* phr)
-: CSource(L"Source", lpunk, CLSID_UnityCamService, phr)
+: CSource(L"Source", lpunk, CLSID_UnrealCamService, phr)
 {
 	//MessageBox(0, L"CaptureSource()", L"", 0);;
 

@@ -10,7 +10,7 @@ STDAPI AMovieSetupUnregisterServer( CLSID clsServer );
 
 CFactoryTemplate g_Templates[] = 
 {
-	{ CaptureSourceName, &CLSID_UnityCamService, CaptureSource::CreateInstance, NULL, &sudCaptureSource }
+	{ CaptureSourceName, &CLSID_UnrealCamService, CaptureSource::CreateInstance, NULL, &sudCaptureSource }
 };
 int g_cTemplates = sizeof(g_Templates) / sizeof(g_Templates[0]);
 
@@ -34,7 +34,7 @@ STDAPI RegisterFilters(BOOL bRegister)
     hr = CoInitialize(0);
     if(bRegister)
     {
-		hr = AMovieSetupRegisterServer(CLSID_UnityCamService, CaptureSourceName, achFileName, L"Both", L"InprocServer32");
+		hr = AMovieSetupRegisterServer(CLSID_UnrealCamService, CaptureSourceName, achFileName, L"Both", L"InprocServer32");
     }
 
     if(SUCCEEDED(hr)) {
@@ -49,7 +49,7 @@ STDAPI RegisterFilters(BOOL bRegister)
                 rf2.dwMerit = MERIT_DO_NOT_USE;
                 rf2.cPins = 1;
                 rf2.rgPins = &sudCaptureSourceOut;
-				hr = fm->RegisterFilter(CLSID_UnityCamService, CaptureSourceName, 0, &CLSID_VideoInputDeviceCategory, NULL, &rf2);
+				hr = fm->RegisterFilter(CLSID_UnrealCamService, CaptureSourceName, 0, &CLSID_VideoInputDeviceCategory, NULL, &rf2);
 				if (SUCCEEDED(hr))
 				{
 					//MessageBox(0, L"RegisterFilter", L"Success", NULL);
@@ -58,7 +58,7 @@ STDAPI RegisterFilters(BOOL bRegister)
 					//MessageBox(0, L"RegisterFilter", L"Failed", NULL);
 				}
             }else{
-                hr = fm->UnregisterFilter(&CLSID_VideoInputDeviceCategory, 0, CLSID_UnityCamService);
+                hr = fm->UnregisterFilter(&CLSID_VideoInputDeviceCategory, 0, CLSID_UnrealCamService);
             }
         }
 		if(fm) {
@@ -68,7 +68,7 @@ STDAPI RegisterFilters(BOOL bRegister)
     }
 
 	if(SUCCEEDED(hr) && !bRegister) {
-		hr = AMovieSetupUnregisterServer(CLSID_UnityCamService);
+		hr = AMovieSetupUnregisterServer(CLSID_UnrealCamService);
 	}
 	if (!SUCCEEDED(hr))
 	{
@@ -88,7 +88,7 @@ STDAPI DllRegisterServer()
 {
     HRESULT res= RegisterFilters(TRUE);
 
-	//this quick hack lets unity read the virtual camera too!
+	//this quick hack lets Unreal read the virtual camera too!
 	// thanks for:
 	//https://social.msdn.microsoft.com/Forums/windowsdesktop/en-US/cd2b9d2d-b961-442d-8946-fdc038fed530/where-to-specify-device-id-in-the-filter?forum=windowsdirectshowdevelopment
 	HKEY hKey;
@@ -101,7 +101,7 @@ STDAPI DllRegisterServer()
 	//std::string str_video_capture_device_key("SOFTWARE\\Classes\\CLSID\\{860BB310-5D01-11d0-BD3B-00A0C911CE86}\\Instance\\");
 
 	LPOLESTR olestr_CLSID;
-	StringFromCLSID(CLSID_UnityCamService, &olestr_CLSID);
+	StringFromCLSID(CLSID_UnrealCamService, &olestr_CLSID);
 
 	std::wstring wstr_CLSID(olestr_CLSID);
 
