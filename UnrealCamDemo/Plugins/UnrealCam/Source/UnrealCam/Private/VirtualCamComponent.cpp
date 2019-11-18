@@ -62,12 +62,6 @@ UVirtualCamComponent::UVirtualCamComponent()
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-
-void UVirtualCamComponent::SetWebcamTextureRender(UTextureRenderTarget2D* TextureRender)
-{
-	WebcamRenderTarget = TextureRender;
-}
-
 void UVirtualCamComponent::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
@@ -83,31 +77,36 @@ void UVirtualCamComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 
 	if (!loadedDLL)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("Loading DLL"));
+		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("Importing DLL"));
 		loadedDLL = importDLL("ExternalDLL", "UnrealWebcam.dll");
 	}
 	else if (!loadedMethod)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("Loading Method"));
+		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("Importing Method"));
 		loadedMethod = importMethodSendTexture();
 	}
 	else
 	{
-		if (WebcamRenderTarget)
+		if (WebcamRenderTexture)
 		{
-			if (WebcamRenderTarget->Resource->bSRGB)
-			{
-				unsigned char* _data = new UCHAR[WebcamRenderTarget->SizeX * WebcamRenderTarget->SizeY * 3];
-				UCHAR* src = (UCHAR*)WebcamRenderTarget->Resource;
-				UCHAR* ptr = (UCHAR*)_data;
+			const FColor* FormatedImageData = static_cast<const FColor*>(WebcamRenderTexture->PlatformData->Mips[0].BulkData.LockReadOnly());
 
-				GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("sRGB"));
-			}
-			else
+			UCHAR* _data = new UCHAR[WebcamRenderTexture->GetSizeX() * WebcamRenderTexture->GetSizeX() * 3];
+			UCHAR* src = (UCHAR*)FormatedImageData;
+			for (int32 X = 0; X < WebcamRenderTexture->GetSizeX(); X++)
 			{
-				SendTextureFromDLL((UCHAR*)WebcamRenderTarget->Resource, WebcamRenderTarget->SizeX, WebcamRenderTarget->SizeY);
-				GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Green, TEXT("TextureSent"));
+				for (int32 Y = 0; Y < WebcamRenderTexture->GetSizeY(); Y++)
+				{
+					_data[Y * WebcamRenderTexture->GetSizeX() + X + 0] = src[Y * WebcamRenderTexture->GetSizeX() + X + 0];
+					_data[Y * WebcamRenderTexture->GetSizeX() + X + 1] = src[Y * WebcamRenderTexture->GetSizeX() + X + 1];
+					_data[Y * WebcamRenderTexture->GetSizeX() + X + 2] = src[Y * WebcamRenderTexture->GetSizeX() + X + 2];
+				}
 			}
+
+			bool response = SendTextureFromDLL((UCHAR*)FormatedImageData, WebcamRenderTexture->GetSizeX(), WebcamRenderTexture->GetSizeY());
+			GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Green, FString::Printf(TEXT("%d"), response));
+
+			WebcamRenderTexture->PlatformData->Mips[0].BulkData.Unlock();
 		}
 	}
 }

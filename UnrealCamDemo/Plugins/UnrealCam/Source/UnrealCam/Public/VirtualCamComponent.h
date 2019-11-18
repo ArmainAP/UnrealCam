@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Engine/TextureRenderTarget2D.h"
+#include "Engine/Texture2D.h"
 #include "VirtualCamComponent.generated.h"
 
 
@@ -16,8 +16,8 @@ class UNREALCAM_API UVirtualCamComponent : public UActorComponent
 public:	
 	UVirtualCamComponent();
 
-	UFUNCTION(BlueprintCallable)
-		void SetWebcamTextureRender(UTextureRenderTarget2D* TextureRender);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D* WebcamRenderTexture;
 
 protected:
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
@@ -32,6 +32,4 @@ private:
 
 	bool loadedDLL = false;
 	bool loadedMethod = false;
-
-	UTextureRenderTarget2D* WebcamRenderTarget;
 };

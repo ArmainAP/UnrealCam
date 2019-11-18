@@ -3,7 +3,9 @@
 
 using namespace mray;
 
-extern "C" bool __declspec(dllexport) SendTexture(const unsigned char* data, int width, int height)
+extern "C"
 {
-	return SharedImageWrapper::SendImage(data, width, height);
+	__declspec(dllexport) bool SendTexture(const unsigned char* data, int width, int height);
 }
+
+SharedImageWrapper* wrapper;
