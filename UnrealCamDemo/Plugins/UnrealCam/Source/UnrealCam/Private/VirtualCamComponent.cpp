@@ -97,9 +97,9 @@ void UVirtualCamComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 			{
 				for (int32 Y = 0; Y < WebcamRenderTexture->GetSizeY(); Y++)
 				{
-					_data[Y * WebcamRenderTexture->GetSizeX() + X + 0] = src[Y * WebcamRenderTexture->GetSizeX() + X + 0];
-					_data[Y * WebcamRenderTexture->GetSizeX() + X + 1] = src[Y * WebcamRenderTexture->GetSizeX() + X + 1];
-					_data[Y * WebcamRenderTexture->GetSizeX() + X + 2] = src[Y * WebcamRenderTexture->GetSizeX() + X + 2];
+					_data[Y * WebcamRenderTexture->GetSizeX() + X * 3 + 0] = src[Y * WebcamRenderTexture->GetSizeX() + X * 4 + 2];
+					_data[Y * WebcamRenderTexture->GetSizeX() + X * 3 + 1] = src[Y * WebcamRenderTexture->GetSizeX() + X * 4 + 1];
+					_data[Y * WebcamRenderTexture->GetSizeX() + X * 3 + 2] = src[Y * WebcamRenderTexture->GetSizeX() + X * 4 + 0];
 				}
 			}
 
