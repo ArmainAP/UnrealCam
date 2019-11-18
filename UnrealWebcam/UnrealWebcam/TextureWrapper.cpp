@@ -17,18 +17,15 @@ TextureWrapper::~TextureWrapper()
 	_data = 0;
 }
 
-bool TextureWrapper::SendImage(void* _TextureNativePtr)
+bool TextureWrapper::SendImage(const unsigned char* data, int width, int height)
 {
-	if (!_TextureNativePtr)
+	if (!data)
 		return false;
 
 	if (!Ready())
 		return false;
 
-	/////
-	/*TODO IMPLEMENT THE SHIT*/
-	////
-
+	return SharedImageWrapper::SendImage(data, width, height);
 
 	return false;
 }

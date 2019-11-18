@@ -1,26 +1,9 @@
 #include "stdafx.h"
-#include "UnityTextureWrapper.h"
+#include "SharedImageWrapper.h"
 
 using namespace mray;
 
-
-extern "C" void __declspec(dllexport) *CreateTextureWrapper()
+extern "C" bool __declspec(dllexport) SendTexture(const unsigned char* data, int width, int height)
 {
-	TextureWrapper* w = new TextureWrapper();
-	return w;
-}
-extern "C" void __declspec(dllexport) DeleteTextureWrapper(void* wrapper)
-{
-	TextureWrapper* w = static_cast<TextureWrapper*>(wrapper);
-	if (!w)
-		return;
-	delete w;
-}
-extern "C" bool __declspec(dllexport) SendTexture(void* wrapper, void* TextureID)
-{
-	TextureWrapper* w = static_cast<TextureWrapper*>(wrapper);
-	if (!w)
-		return false;
-
-	return w->SendImage(TextureID);
+	return SharedImageWrapper::SendImage(data, width, height);
 }

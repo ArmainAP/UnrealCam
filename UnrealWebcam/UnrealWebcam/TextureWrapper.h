@@ -13,7 +13,7 @@ public:
 	TextureWrapper();
 	~TextureWrapper();
 
-	bool SendImage(void* _TextureNativePtr);
+	bool SendImage(const unsigned char* data, int width, int height);
 
 };
 
