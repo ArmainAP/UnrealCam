@@ -20,7 +20,6 @@ public:
 		void SetWebcamTextureRender(UTextureRenderTarget2D* TextureRender);
 
 protected:
-	virtual void BeginPlay() override;
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	   
@@ -31,6 +30,7 @@ private:
 	static bool importMethodSendTexture();
 	static bool SendTextureFromDLL(const unsigned char* data, int width, int height);
 
+	bool loadedDLL = false;
 	bool loadedMethod = false;
 
 	UTextureRenderTarget2D* WebcamRenderTarget;

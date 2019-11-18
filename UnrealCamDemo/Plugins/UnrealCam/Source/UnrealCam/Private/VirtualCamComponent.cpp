@@ -2,8 +2,8 @@
 #include "VirtualCamComponent.h"
 #include "Misc/Paths.h"
 
-typedef bool(*_getSendTexture)(const unsigned char* data, int width, int height);
-_getSendTexture m_getSendTextureFromDLL;
+typedef bool(*_SendTexture)(const unsigned char* data, int width, int height);
+_SendTexture m_SendTextureFromDLL;
 void* v_dllHandle;
 
 bool UVirtualCamComponent::importDLL(FString folder, FString name)
@@ -25,10 +25,10 @@ bool UVirtualCamComponent::importMethodSendTexture()
 {
 	if (v_dllHandle != NULL)
 	{
-		m_getSendTextureFromDLL = NULL;
+		m_SendTextureFromDLL = NULL;
 		FString procName = "SendTexture";
-		m_getSendTextureFromDLL = (_getSendTexture)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-		if (m_getSendTextureFromDLL != NULL)
+		m_SendTextureFromDLL = (_SendTexture)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
+		if (m_SendTextureFromDLL != NULL)
 		{
 			return true;
 		}
@@ -38,9 +38,9 @@ bool UVirtualCamComponent::importMethodSendTexture()
 
 bool UVirtualCamComponent::SendTextureFromDLL(const unsigned char* data, int width, int height)
 {
-	if (m_getSendTextureFromDLL != NULL)
+	if (m_SendTextureFromDLL != NULL)
 	{
-		bool out = bool(m_getSendTextureFromDLL(data, width, height));
+		bool out = bool(m_SendTextureFromDLL(data, width, height));
 		return out;
 	}
 	return false;
@@ -50,7 +50,7 @@ void UVirtualCamComponent::freeDLL()
 {
 	if (v_dllHandle != NULL)
 	{
-		m_getSendTextureFromDLL = NULL;
+		m_SendTextureFromDLL = NULL;
 
 		FPlatformProcess::FreeDllHandle(v_dllHandle);
 		v_dllHandle = NULL;
@@ -68,14 +68,6 @@ void UVirtualCamComponent::SetWebcamTextureRender(UTextureRenderTarget2D* Textur
 	WebcamRenderTarget = TextureRender;
 }
 
-// Called when the game starts
-void UVirtualCamComponent::BeginPlay()
-{
-	Super::BeginPlay();
-	
-	importDLL("ExternalDLL", "UnrealWebcam.dll");
-}
-
 void UVirtualCamComponent::EndPlay(EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
@@ -89,10 +81,15 @@ void UVirtualCamComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!loadedMethod)
+	if (!loadedDLL)
 	{
-		loadedMethod = importMethodSendTexture();
 		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("Loading DLL"));
+		loadedDLL = importDLL("ExternalDLL", "UnrealWebcam.dll");
+	}
+	else if (!loadedMethod)
+	{
+		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("Loading Method"));
+		loadedMethod = importMethodSendTexture();
 	}
 	else
 	{
