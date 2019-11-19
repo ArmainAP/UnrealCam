@@ -1,6 +1,7 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "VirtualCamComponent.h"
 #include "Misc/Paths.h"
+#include "Engine/Classes/Kismet/KismetRenderingLibrary.h"
 
 typedef bool(*_SendTexture)(const unsigned char* data, int width, int height);
 _SendTexture m_SendTextureFromDLL;
@@ -89,24 +90,30 @@ void UVirtualCamComponent::TickComponent(float DeltaTime, ELevelTick TickType, F
 	{
 		if (WebcamRenderTexture)
 		{
-			const FColor* FormatedImageData = static_cast<const FColor*>(WebcamRenderTexture->PlatformData->Mips[0].BulkData.LockReadOnly());
-
-			UCHAR* _data = new UCHAR[WebcamRenderTexture->GetSizeX() * WebcamRenderTexture->GetSizeX() * 3];
-			UCHAR* src = (UCHAR*)FormatedImageData;
-			for (int32 X = 0; X < WebcamRenderTexture->GetSizeX(); X++)
+			FTextureRenderTarget2DResource* textureResource = (FTextureRenderTarget2DResource*)WebcamRenderTexture->Resource;
+			TArray<FColor> ColorBuffer;
+			if (textureResource->ReadPixels(ColorBuffer))
 			{
-				for (int32 Y = 0; Y < WebcamRenderTexture->GetSizeY(); Y++)
+				UCHAR* data = new UCHAR[textureResource->GetSizeX() * textureResource->GetSizeY() * 3];
+				for (uint32 i = 0; i < textureResource->GetSizeX() * textureResource->GetSizeY(); i++)
 				{
-					_data[Y * WebcamRenderTexture->GetSizeX() + X * 3 + 0] = src[Y * WebcamRenderTexture->GetSizeX() + X * 4 + 2];
-					_data[Y * WebcamRenderTexture->GetSizeX() + X * 3 + 1] = src[Y * WebcamRenderTexture->GetSizeX() + X * 4 + 1];
-					_data[Y * WebcamRenderTexture->GetSizeX() + X * 3 + 2] = src[Y * WebcamRenderTexture->GetSizeX() + X * 4 + 0];
+					data[i * 3 + 2] = ColorBuffer[i].R;
+					data[i * 3 + 1] = ColorBuffer[i].G;
+					data[i * 3 + 0] = ColorBuffer[i].B;
 				}
+
+				int i = textureResource->GetSizeX() * textureResource->GetSizeY() * 3 - 1;
+				int j = 0;
+				while (i > j)
+				{
+					auto temp = data[i];
+					data[i] = data[j];
+					data[j] = temp;
+					i--; j++;
+				}
+
+				bool response = SendTextureFromDLL(data, textureResource->GetSizeX(), textureResource->GetSizeY());
 			}
-
-			bool response = SendTextureFromDLL((UCHAR*)FormatedImageData, WebcamRenderTexture->GetSizeX(), WebcamRenderTexture->GetSizeY());
-			GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Green, FString::Printf(TEXT("%d"), response));
-
-			WebcamRenderTexture->PlatformData->Mips[0].BulkData.Unlock();
 		}
 	}
 }

@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Engine/Texture2D.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "VirtualCamComponent.generated.h"
 
 
@@ -17,7 +17,7 @@ public:
 	UVirtualCamComponent();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTexture2D* WebcamRenderTexture;
+	UTextureRenderTarget2D* WebcamRenderTexture;
 
 protected:
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
@@ -29,7 +29,7 @@ private:
 
 	static bool importMethodSendTexture();
 	static bool SendTextureFromDLL(const unsigned char* data, int width, int height);
-
+	
 	bool loadedDLL = false;
 	bool loadedMethod = false;
 };
