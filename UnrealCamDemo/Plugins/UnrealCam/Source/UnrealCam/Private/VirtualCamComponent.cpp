@@ -1,119 +1,38 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 #include "VirtualCamComponent.h"
-#include "Misc/Paths.h"
+#include "UnrealCamDLL.h"
 #include "Engine/Classes/Kismet/KismetRenderingLibrary.h"
-
-typedef bool(*_SendTexture)(const unsigned char* data, int width, int height);
-_SendTexture m_SendTextureFromDLL;
-void* v_dllHandle;
-
-bool UVirtualCamComponent::importDLL(FString folder, FString name)
-{
-	FString filePath = *FPaths::GamePluginsDir() + folder + "/" + name;
-
-	if (FPaths::FileExists(filePath))
-	{
-		v_dllHandle = FPlatformProcess::GetDllHandle(*filePath);
-		if (v_dllHandle != NULL)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool UVirtualCamComponent::importMethodSendTexture()
-{
-	if (v_dllHandle != NULL)
-	{
-		m_SendTextureFromDLL = NULL;
-		FString procName = "SendTexture";
-		m_SendTextureFromDLL = (_SendTexture)FPlatformProcess::GetDllExport(v_dllHandle, *procName);
-		if (m_SendTextureFromDLL != NULL)
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool UVirtualCamComponent::SendTextureFromDLL(const unsigned char* data, int width, int height)
-{
-	if (m_SendTextureFromDLL != NULL)
-	{
-		bool out = bool(m_SendTextureFromDLL(data, width, height));
-		return out;
-	}
-	return false;
-}
-
-void UVirtualCamComponent::freeDLL()
-{
-	if (v_dllHandle != NULL)
-	{
-		m_SendTextureFromDLL = NULL;
-
-		FPlatformProcess::FreeDllHandle(v_dllHandle);
-		v_dllHandle = NULL;
-	}
-}
 
 UVirtualCamComponent::UVirtualCamComponent()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UVirtualCamComponent::EndPlay(EEndPlayReason::Type EndPlayReason)
-{
-	Super::EndPlay(EndPlayReason);
-
-	freeDLL();
-}
-
-
 // Called every frame
 void UVirtualCamComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	if (!loadedDLL)
+	if (WebcamRenderTexture)
 	{
-		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("Importing DLL"));
-		loadedDLL = importDLL("ExternalDLL", "UnrealWebcam.dll");
-	}
-	else if (!loadedMethod)
-	{
-		GEngine->AddOnScreenDebugMessage(-1, DeltaTime, FColor::Red, TEXT("Importing Method"));
-		loadedMethod = importMethodSendTexture();
-	}
-	else
-	{
-		if (WebcamRenderTexture)
+		switch (WebcamRenderTexture->GetPixelFormat())
 		{
-			FTextureRenderTarget2DResource* textureResource = (FTextureRenderTarget2DResource*)WebcamRenderTexture->Resource;
-			TArray<FColor> ColorBuffer;
-			if (textureResource->ReadPixels(ColorBuffer))
+		case EPixelFormat::PF_B8G8R8A8:
+		{
+			const FColor* FormatedImageData = static_cast<const FColor*>(WebcamRenderTexture->PlatformData->Mips[0].BulkData.LockReadOnly());
+			int size = WebcamRenderTexture->GetSizeX() * WebcamRenderTexture->GetSizeY();
+			UCHAR* data = new UCHAR[size * 3];
+			for (int32 i = 0; i < size; i++)
 			{
-				UCHAR* data = new UCHAR[textureResource->GetSizeX() * textureResource->GetSizeY() * 3];
-				for (uint32 i = 0; i < textureResource->GetSizeX() * textureResource->GetSizeY(); i++)
-				{
-					data[i * 3 + 2] = ColorBuffer[i].R;
-					data[i * 3 + 1] = ColorBuffer[i].G;
-					data[i * 3 + 0] = ColorBuffer[i].B;
-				}
-
-				int i = textureResource->GetSizeX() * textureResource->GetSizeY() * 3 - 1;
-				int j = 0;
-				while (i > j)
-				{
-					auto temp = data[i];
-					data[i] = data[j];
-					data[j] = temp;
-					i--; j++;
-				}
-
-				bool response = SendTextureFromDLL(data, textureResource->GetSizeX(), textureResource->GetSizeY());
+				int32 dataIndex = size * 3 - 1 - i * 3;
+				data[dataIndex + 2] = FormatedImageData[i].R;
+				data[dataIndex + 1] = FormatedImageData[i].G;
+				data[dataIndex] = FormatedImageData[i].B;
 			}
+			UnrealCamDLL::SendTextureFromDLL(data, WebcamRenderTexture->GetSizeX(), WebcamRenderTexture->GetSizeY());
+			WebcamRenderTexture->PlatformData->Mips[0].BulkData.Unlock();
+			break;
+		}
 		}
 	}
 }

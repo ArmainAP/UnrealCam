@@ -4,7 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "Engine/TextureRenderTarget2D.h"
+#include "Engine/Texture2D.h"
 #include "VirtualCamComponent.generated.h"
 
 
@@ -17,19 +17,8 @@ public:
 	UVirtualCamComponent();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	UTextureRenderTarget2D* WebcamRenderTexture;
+	UTexture2D* WebcamRenderTexture;
 
 protected:
-	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
-	   
-private:
-	static bool importDLL(FString folder, FString name);
-	static void freeDLL();
-
-	static bool importMethodSendTexture();
-	static bool SendTextureFromDLL(const unsigned char* data, int width, int height);
-	
-	bool loadedDLL = false;
-	bool loadedMethod = false;
 };
