@@ -27,8 +27,8 @@ void UVirtualViewportComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 					for (int32 i = 0; i < size; i++)
 					{
 						int32 dataIndex = size * 3 - 1 - i * 3;
-						data[dataIndex + 2] = ColorBuffer[i].R;
-						data[dataIndex + 1] = ColorBuffer[i].G;
+						data[dataIndex + 2] = ColorBuffer[i].G;
+						data[dataIndex + 1] = ColorBuffer[i].R;
 						data[dataIndex] = ColorBuffer[i].B;
 					}
 					UnrealCamDLL::SendTextureFromDLL(data, inViewport->GetSizeXY().X, inViewport->GetSizeXY().Y);
