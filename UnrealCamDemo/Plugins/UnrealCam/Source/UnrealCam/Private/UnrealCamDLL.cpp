@@ -9,7 +9,7 @@ void* v_dllHandle;
 
 bool UnrealCamDLL::importDLL(FString folder, FString name)
 {
-	FString filePath = *FPaths::GamePluginsDir() + folder + "/" + name;
+	FString filePath = *FPaths::ProjectPluginsDir() + folder + "/" + name;
 
 	if (FPaths::FileExists(filePath))
 	{
